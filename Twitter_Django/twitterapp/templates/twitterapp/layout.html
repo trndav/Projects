@@ -3,26 +3,104 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>{% block title %}Social Network{% endblock %}</title>
+        <title>{% block title %}TwitterApp{% endblock %}</title>
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
         <link href="{% static 'twitterapp/styles.css' %}" rel="stylesheet">
+        
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                document.querySelectorAll('.like-btn').forEach(function(button) {
+                    button.addEventListener('click', function() {
+                        event.preventDefault(); // Prevent default form submission behavior
+                        const postId = this.dataset.postId;
+                        fetch(`/like/${postId}/`, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': '{{ csrf_token }}',
+                            },
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                return response.text(); // Extract the response text
+                            } else {
+                                throw new Error('Network response was not ok.');
+                            }
+                        })
+                        .then(data => {
+                            // Update the like count in the DOM
+                            const likeCountElement = document.getElementById(`likes_count_${postId}`);
+                            if (likeCountElement !== null) {
+                                likeCountElement.textContent = data; // Update the like count
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
+                    });
+                });
+            });
+        </script>
+        
+        <!-- <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                document.querySelectorAll('.like-btn').forEach(function(button) {
+                    button.addEventListener('click', function() {
+                        event.preventDefault(); // Prevent default form submission behavior
+                        const postId = this.dataset.postId;
+                        fetch(`/like/${postId}/`, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': '{{ csrf_token }}',
+                            },
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                const likeCountElement = this.querySelector('.like-count');
+                                if (likeCountElement !== null) {
+                                    const newLikesCount = parseInt(likeCountElement.textContent.trim()) + 1;
+                                    likeCountElement.textContent = newLikesCount;
+                                    console.log('Post ID:', postId);
+                                }
+                            } else {
+                                console.error('Error:', response.statusText);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
+                    });
+                });
+            });
+        </script> -->
+
     </head>
     <body>
 
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
-            <a class="navbar-brand" href="#">Network</a>
+            <a class="navbar-brand" href="#">TwitterApp</a>
           
             <div>
               <ul class="navbar-nav mr-auto">
                 {% if user.is_authenticated %}
+                    {% if user.is_admin %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Admin: <strong>{{ user.username }}</strong></a>
+                    </li>
+                    {% else %}                    
                     <li class="nav-item">
                         <a class="nav-link" href="#"><strong>{{ user.username }}</strong></a>
                     </li>
+                    {% endif %}
                 {% endif %}
+
                 <li class="nav-item">
                   <a class="nav-link" href="{% url 'index' %}">All Posts</a>
                 </li>
                 {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'create_post' %}">Create Post</a>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#">Following</a>
                     </li>

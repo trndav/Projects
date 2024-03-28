@@ -3,6 +3,9 @@ from django.contrib.auth.models import AbstractUser
 
 class User(AbstractUser):
     is_admin = models.BooleanField(default=False)
+    followers = models.ManyToManyField('self', symmetrical=False, related_name='following')
+    def following_count(self):
+        return self.following.count()
 
 # Create post module
 class Post(models.Model):

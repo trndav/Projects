@@ -88,9 +88,20 @@ def like_post(request, post_id):
     return HttpResponse(updated_likes_count)
 
 # User profile page with his posts
-def user_page(request, username):
-    # user = get_object_or_404(User, username=username)
+def user_page(request, username):    
     profile_user = get_object_or_404(User, username=username)
-    posts = Post.objects.filter(user=profile_user)
+    posts = Post.objects.filter(user=profile_user).order_by('-created_at')
     # posts = Post.objects.annotate(num_likes=Count('likes')).order_by('-created_at')
     return render(request, 'twitterapp/user_page.html', {'profile_user': profile_user, 'posts': posts})
+
+# Following functionality
+def follow_user(request, username):
+    user_to_follow = get_object_or_404(User, username=username)
+    request.user.following.add(user_to_follow)
+    return redirect('user_page', username=username)
+
+# Unfollow functionality
+def unfollow_user(request, username):
+    user_to_unfollow = get_object_or_404(User, username=username)
+    request.user.following.remove(user_to_unfollow)
+    return redirect('user_page', username=username)

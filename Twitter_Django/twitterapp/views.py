@@ -82,16 +82,15 @@ def posts_view(request):
 
 # Like on posts
 def like_post(request, post_id):
-    # Get post object or return 404
-    # post = get_object_or_404(Post, pk=post_id)
-    # post.likes.add(request.user) # Add current user to post likes
-    # posts = Post.objects.annotate(num_likes=Count('likes')).order_by('-created_at')
-    # # return redirect('posts_view')
-    # return render(request, 'twitterapp/posts_view.html', {'posts': posts})
     post = get_object_or_404(Post, pk=post_id)
-    # Process the like action...
     post.likes.add(request.user)  # Add current user to post likes
-    # Get the updated like count for the post
     updated_likes_count = post.total_likes()
-    # Return the updated like count as plain text
     return HttpResponse(updated_likes_count)
+
+# User profile page with his posts
+def user_page(request, username):
+    # user = get_object_or_404(User, username=username)
+    profile_user = get_object_or_404(User, username=username)
+    posts = Post.objects.filter(user=profile_user)
+    # posts = Post.objects.annotate(num_likes=Count('likes')).order_by('-created_at')
+    return render(request, 'twitterapp/user_page.html', {'profile_user': profile_user, 'posts': posts})

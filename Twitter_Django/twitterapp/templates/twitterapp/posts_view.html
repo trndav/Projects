@@ -6,11 +6,12 @@
     <ul>
         {% for post in posts %}
         <div class="col-sm-10">
-            {{ post.text }}<br>
-            <!-- <p id="font_small">{{ post.num_likes }} likes<br> -->
-            <span id="likes_count_{{ post.id }}">{{ post.total_likes }}</span> likes
-            <button class="like-btn" data-post-id="{{ post.id }}">Like</button><br>
-            <p id="font_small">Posted by <b>{{ post.user }}</b> <i>on {{ post.created_at }}</i></p>
+            {{ post.text }}<br>     
+            <i><span id="font_small">Posted by <b><a href="{% url 'user_page' username=post.user.username %}">{{ post.user }}</a></b> on {{ post.created_at }}</i></span><br>  
+            <span class="font_small" id="likes_count_{{ post.id }}">{{ post.total_likes }}</span> <span class="font_small"> likes</span>
+            {% if user.is_authenticated %}
+                <button class="like-btn" data-post-id="{{ post.id }}">Like</button>
+            {% endif %}            
             <hr>
         </div>
         {% endfor %}

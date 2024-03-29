@@ -40,13 +40,88 @@
                     });
                 });
             });
+
+            // Pagination
+            document.addEventListener('DOMContentLoaded', function() {
+    let currentPage = 1;
+    let totalPages = 1;
+
+    function loadPosts(page) {
+        currentPage = page;
+        fetch(`/get_paginated_posts?page=${page}`)
+            .then(response => response.json())
+            .then(data => {
+                // Update page content with fetched posts data
+                const postsContainer = document.getElementById('posts-container');
+                postsContainer.innerHTML = ''; // Clear existing posts
+                data.posts.forEach(post => {
+                    const postElement = document.createElement('div');
+                    postElement.className = 'col-sm-10';
+                    postElement.innerHTML = `
+                        ${post.text}<br>
+                        <i><span id="font_small">Posted by <b><a href="#">${post.user}</a></b> on ${post.created_at}</i></span><br>  
+                        <span class="font_small" id="likes_count_${post.id}">${post.total_likes}</span> <span class="font_small"> likes</span>
+                        ${data.is_authenticated ? `<button class="like-btn" data-post-id="${post.id}">Like</button>` : ''}
+                        <hr>
+                    `;
+                    postsContainer.appendChild(postElement);
+                });
+
+                // Update pagination buttons
+                const paginationContainer = document.getElementById('pagination-container');
+                paginationContainer.innerHTML = '';
+                const previousBtn = document.createElement('button');
+                previousBtn.id = 'previous-btn';
+                previousBtn.textContent = 'Previous';
+                previousBtn.disabled = currentPage === 1; // Disable previous button if on first page
+                previousBtn.addEventListener('click', () => loadPosts(currentPage - 1));
+                paginationContainer.appendChild(previousBtn);
+
+                const nextBtn = document.createElement('button');
+                nextBtn.id = 'next-btn';
+                nextBtn.textContent = 'Next';
+                nextBtn.disabled = currentPage === totalPages; // Disable next button if on last page
+                nextBtn.addEventListener('click', () => loadPosts(currentPage + 1));
+                paginationContainer.appendChild(nextBtn);
+            });
+    }
+
+    // Initial load
+    fetch('/get_paginated_posts?page=1')
+        .then(response => response.json())
+        .then(data => {
+            totalPages = calculateTotalPages(data.total_posts, 5); // Assuming 5 posts per page
+            loadPosts(currentPage);
+        });
+
+    // Function to calculate total pages
+    function calculateTotalPages(totalPosts, postsPerPage) {
+        return Math.ceil(totalPosts / postsPerPage);
+    }
+});
+
+
+    // Function to calculate total pages
+    function calculateTotalPages(totalPosts, postsPerPage) {
+        return Math.ceil(totalPosts / postsPerPage);
+    }
+
+    // Initial load
+    fetch('/get_paginated_posts?page=1') // Fetch initial page data to calculate total pages
+        .then(response => response.json())
+        .then(data => {
+            totalPages = calculateTotalPages(data.total_posts, 5); // Assuming 5 posts per page
+            loadPosts(currentPage); // Load initial page data
+        });
+
+
+
         </script>
     </head>
     <body>
 
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
-            <a class="navbar-brand" href="#">TwitterApp</a>
-          
+            <a class="navbar-brand" href="#">TwitterApp</a>          
             <div>
               <ul class="navbar-nav mr-auto">
                 {% if user.is_authenticated %}

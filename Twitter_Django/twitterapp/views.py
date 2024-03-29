@@ -7,6 +7,8 @@ from .models import User, Post
 from django.contrib.auth.decorators import login_required
 from .forms import PostForm
 from django.db.models import Count
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.http import JsonResponse
 
 def index(request):
     return render(request, "twitterapp/posts_view.html")
@@ -113,3 +115,45 @@ def following_users(request):
         return render(request, 'twitterapp/following_users.html', {'posts': posts})
     else:
         return render(request, 'twitterapp/login.html')
+
+# Pagination
+def get_paginated_posts(request):
+    posts = Post.objects.all().order_by('-created_at')
+    paginator = Paginator(posts, 5)
+    page_number = request.GET.get('page')
+    print("Page number:", page_number)
+    print("Total number of posts:", len(posts))
+    try:
+        paginated_posts = paginator.page(page_number)
+    except PageNotAnInteger:
+        paginated_posts = paginator.page(1)
+    except EmptyPage:
+        paginated_posts = paginator.page(paginator.num_pages)
+    
+    # Serialize posts data
+    posts_data = []
+    for post in paginated_posts:
+        post_data = {
+            'text': post.text,
+            'created_at': post.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            
+            'user': post.user.username,  # Serialize the username of the post's user
+        
+            'total_likes': post.total_likes()
+        }
+        posts_data.append(post_data)
+
+    print("Serialized posts data:", posts_data)
+    is_authenticated = request.user.is_authenticated
+    
+    # Construct and return JSON response
+    return JsonResponse({
+        'posts': posts_data,
+        'total_posts': paginator.count,
+        'has_previous': paginated_posts.has_previous(),
+        'has_next': paginated_posts.has_next(),
+        'is_authenticated': is_authenticated
+    })
+
+
+

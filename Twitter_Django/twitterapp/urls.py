@@ -12,5 +12,6 @@ urlpatterns = [
     path('user/<str:username>/', views.user_page, name='user_page'),
     path('user/<str:username>/follow/', views.follow_user, name='follow_user'),  # URL for following a user
     path('user/<str:username>/unfollow', views.unfollow_user, name='unfollow_user'), # Unfollow
-    path('following_users', views.following_users, name='following_users'),
+    path('following_users', views.following_users, name='following_users'), # See posts of users we follow
+    path('get_paginated_posts', views.get_paginated_posts, name='get_paginated_posts'), # Pagination
 ]

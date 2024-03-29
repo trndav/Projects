@@ -13,5 +13,7 @@ urlpatterns = [
     path('user/<str:username>/follow/', views.follow_user, name='follow_user'),  # URL for following a user
     path('user/<str:username>/unfollow', views.unfollow_user, name='unfollow_user'), # Unfollow
     path('following_users', views.following_users, name='following_users'), # See posts of users we follow
-    path('get_paginated_posts', views.get_paginated_posts, name='get_paginated_posts'), # Pagination
+    # path('get_paginated_posts', views.get_paginated_posts, name='get_paginated_posts'), # Pagination
+    path('edit_post/<int_post_id>', views.edit_post, name='edit_post'),
+    path('post/<int:post_id>/', views.post_detail, name='post_detail')
 ]

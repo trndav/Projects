@@ -14,6 +14,8 @@ class Post(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     likes = models.ManyToManyField(User, through='Like', related_name='liked_posts', blank=True)
+    is_edited = models.BooleanField(default=False)  # Add a field to track if the post has been edited
+    edited_text = models.TextField(blank=True, null=True)  # Field to store the edited content
     def __str__(self):
         return f'Posted by: {self.user.username} on {self.created_at}'
     def total_likes(self):

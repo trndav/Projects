@@ -42,79 +42,92 @@
             });
 
             // Pagination
-            document.addEventListener('DOMContentLoaded', function() {
-    let currentPage = 1;
-    let totalPages = 1;
+//             document.addEventListener('DOMContentLoaded', function() {
+//     // Check if the current page URL contains 'posts_view'
+//     if (window.location.href.includes('/get_paginated_posts?')) { //(window.location.href.includes('') || 
+//         console.log('Executing JavaScript for posts_view page');
+//         let currentPage = 1;
+//         let totalPages = 1;
 
-    function loadPosts(page) {
-        currentPage = page;
-        fetch(`/get_paginated_posts?page=${page}`)
-            .then(response => response.json())
-            .then(data => {
-                // Update page content with fetched posts data
-                const postsContainer = document.getElementById('posts-container');
-                postsContainer.innerHTML = ''; // Clear existing posts
-                data.posts.forEach(post => {
-                    const postElement = document.createElement('div');
-                    postElement.className = 'col-sm-10';
-                    postElement.innerHTML = `
-                        ${post.text}<br>
-                        <i><span id="font_small">Posted by <b><a href="#">${post.user}</a></b> on ${post.created_at}</i></span><br>  
-                        <span class="font_small" id="likes_count_${post.id}">${post.total_likes}</span> <span class="font_small"> likes</span>
-                        ${data.is_authenticated ? `<button class="like-btn" data-post-id="${post.id}">Like</button>` : ''}
-                        <hr>
-                    `;
-                    postsContainer.appendChild(postElement);
-                });
+//         function loadPosts(page) {
+//             currentPage = page;
+//             fetch(`/get_paginated_posts?page=${page}`)
+//                 .then(response => response.json())
+//                 .then(data => {
+//                     // Update page content with fetched posts data
+//                     const postsContainer = document.getElementById('posts-container');
+//                     postsContainer.innerHTML = ''; // Clear existing posts
+//                     data.posts.forEach(post => {
+//                         const postElement = document.createElement('div');
+//                         postElement.className = 'col-sm-10';
+//                         postElement.innerHTML = `
+//                             ${post.text}<br>
+//                             <i><span id="font_small">Posted by <b><a href="user/${post.user}">${post.user}</a></b> on ${post.created_at}</i></span><br>  
+//                             <span class="font_small" id="likes_count_${post.id}">${post.total_likes}</span> <span class="font_small"> likes</span>
+//                             ${data.is_authenticated ? `<button class="like-btn" data-post-id="${post.id}">Like</button>` : ''}
+//                             <hr>
+//                         `;
+//                         postsContainer.appendChild(postElement);
+//                     });
 
-                // Update pagination buttons
-                const paginationContainer = document.getElementById('pagination-container');
-                paginationContainer.innerHTML = '';
-                const previousBtn = document.createElement('button');
-                previousBtn.id = 'previous-btn';
-                previousBtn.textContent = 'Previous';
-                previousBtn.disabled = currentPage === 1; // Disable previous button if on first page
-                previousBtn.addEventListener('click', () => loadPosts(currentPage - 1));
-                paginationContainer.appendChild(previousBtn);
+//                     // Update pagination buttons
+//                     const paginationContainer = document.getElementById('pagination-container');
+//                     paginationContainer.innerHTML = '';
+//                     const previousBtn = document.createElement('button');
+//                     previousBtn.id = 'previous-btn';
+//                     previousBtn.textContent = 'Previous';
+//                     // previousBtn.disabled = currentPage === 1; // Disable previous button if on first page
+//                     if (currentPage === 1) {
+//                         previousBtn.style.display = 'none';
+//                     } else {
+//                         previousBtn.style.display = 'inline-block';
+//                     }
+//                     previousBtn.addEventListener('click', () => loadPosts(currentPage - 1));
+//                     previousBtn.style.marginRight = '10px';
+//                     previousBtn.classList.add('btn-primary');
 
-                const nextBtn = document.createElement('button');
-                nextBtn.id = 'next-btn';
-                nextBtn.textContent = 'Next';
-                nextBtn.disabled = currentPage === totalPages; // Disable next button if on last page
-                nextBtn.addEventListener('click', () => loadPosts(currentPage + 1));
-                paginationContainer.appendChild(nextBtn);
-            });
-    }
+//                     const nextBtn = document.createElement('button');
+//                     nextBtn.id = 'next-btn';
+//                     nextBtn.textContent = 'Next';
+//                     // nextBtn.disabled = currentPage === totalPages; // Disable next button if on last page
+//                     if (currentPage === totalPages) {
+//                         nextBtn.style.display = 'none';
+//                     } else {
+//                         nextBtn.style.display = 'inline-block';
+//                     }
+//                     nextBtn.addEventListener('click', () => loadPosts(currentPage + 1));
+//                     nextBtn.style.marginLeft = '10px';
+//                     nextBtn.style.marginBottom = '10px';
+//                     nextBtn.classList.add('btn-primary');
 
-    // Initial load
-    fetch('/get_paginated_posts?page=1')
-        .then(response => response.json())
-        .then(data => {
-            totalPages = calculateTotalPages(data.total_posts, 5); // Assuming 5 posts per page
-            loadPosts(currentPage);
-        });
+//                     // Container for buttons to center them
+//                     const buttonContainer = document.createElement('div');
+//                     buttonContainer.style.width = '100%';
+//                     buttonContainer.style.textAlign = 'center';
+//                     // Add buttons to container
+//                     buttonContainer.appendChild(previousBtn);
+//                     buttonContainer.appendChild(nextBtn);
+//                     paginationContainer.appendChild(buttonContainer);
+//                 });
+//         }
 
-    // Function to calculate total pages
-    function calculateTotalPages(totalPosts, postsPerPage) {
-        return Math.ceil(totalPosts / postsPerPage);
-    }
-});
+//         // Initial load
+//         fetch('/get_paginated_posts?page=1')
+//             .then(response => response.json())
+//             .then(data => {
+//                 totalPages = calculateTotalPages(data.total_posts, 5); // Assuming 5 posts per page
+//                 loadPosts(currentPage);
+//             });
 
-
-    // Function to calculate total pages
-    function calculateTotalPages(totalPosts, postsPerPage) {
-        return Math.ceil(totalPosts / postsPerPage);
-    }
-
-    // Initial load
-    fetch('/get_paginated_posts?page=1') // Fetch initial page data to calculate total pages
-        .then(response => response.json())
-        .then(data => {
-            totalPages = calculateTotalPages(data.total_posts, 5); // Assuming 5 posts per page
-            loadPosts(currentPage); // Load initial page data
-        });
-
-
+//         // Function to calculate total pages
+//         function calculateTotalPages(totalPosts, postsPerPage) {
+//             return Math.ceil(totalPosts / postsPerPage);
+//         } 
+//     } else {
+//         console.log('Not on posts_view page');
+//     }
+    
+// });
 
         </script>
     </head>

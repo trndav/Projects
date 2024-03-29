@@ -41,39 +41,6 @@
                 });
             });
         </script>
-        
-        <!-- <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                document.querySelectorAll('.like-btn').forEach(function(button) {
-                    button.addEventListener('click', function() {
-                        event.preventDefault(); // Prevent default form submission behavior
-                        const postId = this.dataset.postId;
-                        fetch(`/like/${postId}/`, {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRFToken': '{{ csrf_token }}',
-                            },
-                        })
-                        .then(response => {
-                            if (response.ok) {
-                                const likeCountElement = this.querySelector('.like-count');
-                                if (likeCountElement !== null) {
-                                    const newLikesCount = parseInt(likeCountElement.textContent.trim()) + 1;
-                                    likeCountElement.textContent = newLikesCount;
-                                    console.log('Post ID:', postId);
-                                }
-                            } else {
-                                console.error('Error:', response.statusText);
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                        });
-                    });
-                });
-            });
-        </script> -->
-
     </head>
     <body>
 
@@ -85,7 +52,7 @@
                 {% if user.is_authenticated %}
                     {% if user.is_admin %}
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Admin: <strong>{{ user.username }}</strong></a>
+                        <a class="nav-link" href="{% url 'user_page' user.username %}">Admin: <strong>{{ user.username }}</strong></a>
                     </li>
                     {% else %}                    
                     <li class="nav-item">
@@ -102,7 +69,7 @@
                         <a class="nav-link" href="{% url 'create_post' %}">Create Post</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Following</a>
+                        <a class="nav-link" href="{% url 'following_users' %}">Following</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'logout' %}">Log Out</a>

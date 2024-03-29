@@ -7,7 +7,6 @@ from .models import User, Post
 from django.contrib.auth.decorators import login_required
 from .forms import PostForm
 from django.db.models import Count
-import logging
 
 def index(request):
     return render(request, "twitterapp/posts_view.html")
@@ -105,3 +104,12 @@ def unfollow_user(request, username):
     user_to_unfollow = get_object_or_404(User, username=username)
     request.user.following.remove(user_to_unfollow)
     return redirect('user_page', username=username)
+
+# Show posts os users we follow
+def following_users(request):
+    if request.user.is_authenticated:
+        following_users_ids = request.user.following.values_list('id', flat=True)
+        posts = Post.objects.filter(user__in=following_users_ids).order_by('-created_at')
+        return render(request, 'twitterapp/following_users.html', {'posts': posts})
+    else:
+        return render(request, 'twitterapp/login.html')

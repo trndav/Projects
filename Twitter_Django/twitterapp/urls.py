@@ -11,5 +11,6 @@ urlpatterns = [
     path('like/<int:post_id>/', views.like_post, name='like_post'),
     path('user/<str:username>/', views.user_page, name='user_page'),
     path('user/<str:username>/follow/', views.follow_user, name='follow_user'),  # URL for following a user
-    path('user/<str:username>/unfollow', views.unfollow_user, name='unfollow_user') # Unfollow
+    path('user/<str:username>/unfollow', views.unfollow_user, name='unfollow_user'), # Unfollow
+    path('following_users', views.following_users, name='following_users'),
 ]

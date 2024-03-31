@@ -17,4 +17,5 @@ urlpatterns = [
     # path('get_paginated_posts', views.get_paginated_posts, name='get_paginated_posts'), # Pagination
     path('edit_post/<int:post_id>/', views.edit_post, name='edit_post'),
     path('post/<int:post_id>/', views.post_detail, name='post_detail'),
+    path('unlike/<int:post_id>/', views.unlike_post, name='unlike_post'),
 ]

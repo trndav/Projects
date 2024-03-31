@@ -27,3 +27,12 @@ class Like(models.Model):
     post = models.ForeignKey('Post', on_delete=models.CASCADE)
     class Meta:
         unique_together = ('user', 'post')  # Ensure each user can like a post only once
+    # Unlike
+    @classmethod
+    def unlike_post(cls, user, post):
+        try:
+            like = cls.objects.get(user=user, post=post)
+            like.delete()
+            return True  # Return True if unlike is successful
+        except cls.DoesNotExist:
+            return False  # Return False if like does not exist

@@ -2,55 +2,94 @@
 
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title>{% block title %}TwitterApp{% endblock %}</title>
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-        <link href="{% static 'twitterapp/styles.css' %}" rel="stylesheet">
-        
+<head>
+    <title>{% block title %}TwitterApp{% endblock %}</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link href="{% static 'twitterapp/styles.css' %}" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
-        <script>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
             // Like functionality
+            document.querySelectorAll('.like-btn').forEach(function(button) {
+                button.addEventListener('click', function() {
+                    event.preventDefault(); // Prevent default form submission behavior
+                    const postId = this.dataset.postId;
+                    fetch(`/like/${postId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}',
+                        },
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            return response.text(); // Extract the response text
+                        } else {
+                            throw new Error('Network response was not ok.');
+                        }
+                    })
+                    .then(data => {
+                        // Update the like count in the DOM
+                        const likeCountElement = document.getElementById(`likes_count_${postId}`);
+                        if (likeCountElement !== null) {
+                            likeCountElement.textContent = data; // Update the like count
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+                });
+            });
+        })
+
+            // Unlike
+            function unlikePost(postId) {
+                fetch(`/unlike/${postId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                    },
+                })
+                .then(response => {
+                    if (response.ok) {
+                        return response.text();
+                    } else {
+                        throw new Error('Network response was not ok.');
+                    }
+                })
+                .then(data => {  
+                    console.log("Data output:", data);
+                    const likeCountElement = document.getElementById(`likes_count_${postId}`);
+                    if (likeCountElement !== null) {
+                        likeCountElement.textContent = data;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while processing your request.');
+                });
+            }
+
+        // Event listener for unlike button click
             document.addEventListener('DOMContentLoaded', function() {
-                document.querySelectorAll('.like-btn').forEach(function(button) {
-                    button.addEventListener('click', function() {
-                        event.preventDefault(); // Prevent default form submission behavior
+                document.querySelectorAll('.unlike-btn').forEach(function(button) {
+                    button.addEventListener('click', function(event) {
+                        event.preventDefault();
+                        event.stopPropagation(); // Stop event propagation
                         const postId = this.dataset.postId;
-                        fetch(`/like/${postId}/`, {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRFToken': '{{ csrf_token }}',
-                            },
-                        })
-                        .then(response => {
-                            if (response.ok) {
-                                return response.text(); // Extract the response text
-                            } else {
-                                throw new Error('Network response was not ok.');
-                            }
-                        })
-                        .then(data => {
-                            // Update the like count in the DOM
-                            const likeCountElement = document.getElementById(`likes_count_${postId}`);
-                            if (likeCountElement !== null) {
-                                likeCountElement.textContent = data; // Update the like count
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                        });
+                        unlikePost(postId);
                     });
                 });
             });
 
-        </script>
-    </head>
-    <body>
-
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
-            <a class="navbar-brand" href="#">TwitterApp</a>          
-            <div>
-              <ul class="navbar-nav mr-auto">
+    </script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">TwitterApp</a>          
+        <div>
+            <ul class="navbar-nav mr-auto">
                 {% if user.is_authenticated %}
                     {% if user.is_admin %}
                     <li class="nav-item">
@@ -62,9 +101,8 @@
                     </li>
                     {% endif %}
                 {% endif %}
-
                 <li class="nav-item">
-                  <a class="nav-link" href="{% url 'index' %}">All Posts</a>
+                    <a class="nav-link" href="{% url 'index' %}">All Posts</a>
                 </li>
                 {% if user.is_authenticated %}
                     <li class="nav-item">
@@ -84,13 +122,12 @@
                         <a class="nav-link" href="{% url 'register' %}">Register</a>
                     </li>
                 {% endif %}
-              </ul>
-            </div>
-          </nav>
-        
-        <div class="body">
-            {% block body %}
-            {% endblock %}
+            </ul>
         </div>
-    </body>
+    </nav>
+    <div class="body">
+        {% block body %}
+        {% endblock %}
+    </div>
+</body>
 </html>

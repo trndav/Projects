@@ -2,7 +2,7 @@
 
 * Register/Login/Logout user
 * Create new post
-* Like posts for logged user
+* Like/unlike posts for logged user
 * User profile
 * User follower and following count
 * Follow and unfollow user

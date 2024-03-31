@@ -3,7 +3,7 @@ from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
-from .models import User, Post
+from .models import User, Post, Like
 from django.contrib.auth.decorators import login_required
 from .forms import PostForm
 from django.db.models import Count
@@ -161,3 +161,13 @@ def edit_post(request, post_id):
         form = PostForm(instance=post)
     return render(request, 'twitterapp/edit_post.html', {'form': form, 'post': post})
 
+@login_required
+def unlike_post(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
+    try:
+        Like.unlike_post(request.user, post)
+        messages.success(request, 'Post unliked successfully.')
+    except:
+        messages.error(request, "unable to unlike post.")
+    updated_likes_count = post.total_likes()
+    return HttpResponse(updated_likes_count)

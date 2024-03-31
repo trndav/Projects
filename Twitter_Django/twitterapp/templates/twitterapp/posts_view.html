@@ -16,7 +16,8 @@
                 </i></span><br>  
                 <span class="font_small" id="likes_count_{{ post.id }}">{{ post.total_likes }}</span> <span class="font_small"> likes</span>
                 {% if user.is_authenticated %}
-                    <button class="like-btn" data-post-id="{{ post.id }}">Like</button>
+                    <button class="like-btn" data-post-id="{{ post.id }}">Like</button> <button type="button" class="unlike-btn" data-post-id="{{ post.id }}">Unlike</button>
+
                 {% endif %}            
                 <hr>
             </div>
@@ -54,24 +55,4 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     
-
-    <!-- <ul id="posts-container">
-        {% for post in posts %}
-        <div class="col-sm-10">
-            {{ post.text }}<br>     
-            <i><span id="font_small">Posted by <b><a href="{% url 'user_page' username=post.user.username %}">{{ post.user }}</a></b> on {{ post.created_at }}</i></span><br>  
-            <span class="font_small" id="likes_count_{{ post.id }}">{{ post.total_likes }}</span> <span class="font_small"> likes</span>
-            {% if user.is_authenticated %}
-                <button class="like-btn" data-post-id="{{ post.id }}">Like</button>
-            {% endif %}            
-            <hr>
-        </div>
-        {% endfor %}
-    </ul>
-    <div id="pagination-container">
-        <button id="previous-btn">Previous</button>
-        <button id="next-btn">Next</button>
-    </div>     -->
-
-
 {% endblock %}

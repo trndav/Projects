@@ -1,0 +1,3 @@
+## Projects content
+
+* Twitter_Django - Twitter like page made in Django. Create/edit posts, like/unlike posts, follow/unfollow users...

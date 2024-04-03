@@ -128,3 +128,5 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     # Other authentication backends if any
 ]
+
+AUTH_USER_MODEL = 'news.User'

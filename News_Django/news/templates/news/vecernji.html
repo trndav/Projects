@@ -15,9 +15,10 @@
                 </tr>
                 </thead>
                 <tbody>
-                {% for title in vectitles %}      
+                {% for title, title2 in zipped_titles %}      
                 <tr>     
-                    <td>{{ title.strip }}</td>     
+                    <td><a href="https://www.vecernji.hr{{ title.link }}">{{ title.title }}</a></td>     
+                    <td><a href="https://www.vecernji.hr{{ title2.link }}">{{ title2.title }}</td>  
                 </tr>     
                 {% endfor %}                 
                 </tbody>

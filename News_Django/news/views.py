@@ -7,6 +7,8 @@ from .models import User
 from django.contrib.auth.hashers import check_password # For hash pass check
 import requests
 from bs4 import BeautifulSoup
+import re
+import html
 
 # Create your views here.
 def index(request):
@@ -76,20 +78,23 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "news/register.html")
-    
+
 def extract_title(url):
     response = requests.get(url)
     if response.status_code == 200:
-        # Parse the HTML content of the webpage
         soup = BeautifulSoup(response.text, 'html.parser')
-        # Find all elements with class 'card__article-link'
-        titles = soup.find_all(class_='card__title')
-        # Extract the titles from the elements
-        title_list = [title.get_text() for title in titles]
-        return title_list
+        articles = soup.find_all(class_='card__article')
+        data = []
+        for article in articles:
+            title_link = article.find('a', class_='card__article-link')
+            title = title_link.find('span', class_='card__title').get_text().strip()
+            link = title_link['href']
+            data.append({'title': title, 'link': link})
+        return data
     else:
         print('Error fetching webpage:', response.status_code)
         return []
+
 
 def choose_news(request):    
     url = 'https://www.jutarnji.hr/vijesti/najcitanije'
@@ -97,43 +102,69 @@ def choose_news(request):
     url2 = 'https://www.jutarnji.hr/vijesti/najnovije'
     titles2 = extract_title(url2)
     zipped_titles = zip(titles, titles2)
-    return render(request, "news/choose_news.html", {'user': request.user, 'zipped_titles': zipped_titles })
+    cleaned_data = [(clean_data(d1), clean_data(d2)) for d1, d2 in zipped_titles]
+    return render(request, "news/choose_news.html", {'user': request.user, 'zipped_titles': cleaned_data })
 
+def clean_data(data):
+    return {key: value.strip().replace('&#x27;', "'").replace('\n', '') for key, value in data.items()}
+
+# Extract titley only
+# def extract_vecernji(url):
+#     response = requests.get(url)
+#     if response.status_code == 200:
+#         soup = BeautifulSoup(response.text, 'html.parser')
+#         component_light = soup.find(class_='component--light')
+#         if component_light and component_light.find('a', href='#najcitanije'):
+#             h3_titles = component_light.find_all('h3')
+#             titles_list = [h3.get_text(strip=True) for h3 in h3_titles]
+#             return titles_list
+#         else:
+#             return None
+#     else:
+#         print('Error fetching webpage:', response.status_code)
+#         return []
+    
 def extract_vecernji(url):
     response = requests.get(url)
     if response.status_code == 200:
         soup = BeautifulSoup(response.text, 'html.parser')
+        articles = soup.find_all(class_='card__link')
+        data = []
+        for article in articles:
+            title = article.find('h3', class_='card__title').get_text().strip()
+            title = clean_html(title)  # Decode HTML entities
+            link = article['href']
+            data.append({'title': title, 'link': link})
+        return data
+    else:
+        print('Error fetching webpage:', response.status_code)
+        return []   
 
-        component_light = soup.find(class_='component--light')
-
-        # Check if the component has the href attribute and its value is '#najnovije'
-        if component_light and component_light.find('a', href='#najcitanije'):
-            # Find all h3 elements within the component
-            h3_titles = component_light.find_all('h3')
-            # Extract text from each h3 element and store it in a list
-            titles_list = [h3.get_text(strip=True) for h3 in h3_titles]
-            # Return the list of titles
-            return titles_list
-        else:
-            # Return None or handle the case where the component or the href attribute is not found
-            return None
-
-        # component_light = soup.find(class_='component--light')
-        # h3_titles = component_light.find_all('h3')
-        # titles_list = [h3.get_text(strip=True) for h3 in h3_titles]
-        # return titles_list
-
-        # h3_tags = soup.find_all(class_='card__title')
-        # titles = [tag.get_text(strip=True) for tag in h3_tags]
-        # return titles
+def extract_vecernji_najnovije(url):
+    response = requests.get(url)
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.text, 'html.parser')
+        articles = soup.find_all(class_='card__link') 
+        data = [] 
+        for article in articles: 
+            title = article.find('h3', class_='card__title').get_text().strip()
+            title = clean_html(title)
+            link = article['href']
+            data.append({'title': title, 'link': link})
+        return data
     else:
         print('Error fetching webpage:', response.status_code)
         return []
 
+def clean_html(text):
+    clean_text = re.sub('<[^<]+?>', '', text)
+    clean_text = html.unescape(clean_text)
+    return clean_text
+
 def vecernji(request):
     vec = 'https://www.vecernji.hr/'
     vectitles = extract_vecernji(vec)
-    # vec2 = 'https://www.vecernji.hr/'
-    # vectitles2 = extract_vecernji(vec2)
-    # zipped_titles = zip(vectitles, vectitles2)
-    return render(request, "news/vecernji.html", {'user': request.user, 'vectitles': vectitles })
+    vec2 = 'https://www.vecernji.hr/vijesti'
+    vectitles2 = extract_vecernji_najnovije(vec2)
+    zipped_titles = zip(vectitles, vectitles2)
+    return render(request, "news/vecernji.html", {'user': request.user, 'zipped_titles': zipped_titles })

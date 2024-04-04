@@ -17,8 +17,8 @@
                 <tbody>
                 {% for title, title2 in zipped_titles %}      
                 <tr>     
-                    <td>{{ title }}</td> 
-                    <td>{{ title2 }}</td>  
+                    <td><a href="https://www.jutarnji.hr{{ title.link }}">{{ title.title }}</a></td> 
+                    <td><a href="https://www.jutarnji.hr{{ title2.link }}">{{ title2.title }}</a></td>  
                 </tr>     
                 {% endfor %}                 
                 </tbody>

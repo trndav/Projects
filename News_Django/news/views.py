@@ -9,6 +9,7 @@ import requests
 from bs4 import BeautifulSoup
 import re
 import html
+import json
 
 # Create your views here.
 def index(request):
@@ -130,11 +131,14 @@ def extract_vecernji(url):
         soup = BeautifulSoup(response.text, 'html.parser')
         articles = soup.find_all(class_='card__link')
         data = []
+        seen_titles = set()  # Create a set to store unique titles
         for article in articles:
             title = article.find('h3', class_='card__title').get_text().strip()
             title = clean_html(title)  # Decode HTML entities
             link = article['href']
-            data.append({'title': title, 'link': link})
+            if title not in seen_titles:
+                data.append({'title': title, 'link': link})
+                seen_titles.add(title)
         return data
     else:
         print('Error fetching webpage:', response.status_code)
@@ -146,11 +150,14 @@ def extract_vecernji_najnovije(url):
         soup = BeautifulSoup(response.text, 'html.parser')
         articles = soup.find_all(class_='card__link') 
         data = [] 
+        seen_titles = set()  # Create a set to store unique titles
         for article in articles: 
             title = article.find('h3', class_='card__title').get_text().strip()
             title = clean_html(title)
             link = article['href']
-            data.append({'title': title, 'link': link})
+            if title not in seen_titles:
+                data.append({'title': title, 'link': link})
+                seen_titles.add(title)
         return data
     else:
         print('Error fetching webpage:', response.status_code)
@@ -168,3 +175,44 @@ def vecernji(request):
     vectitles2 = extract_vecernji_najnovije(vec2)
     zipped_titles = zip(vectitles, vectitles2)
     return render(request, "news/vecernji.html", {'user': request.user, 'zipped_titles': zipped_titles })
+
+# def extract_sata24(request):
+#     response = requests.get(url)
+#     if response.status_code == 200:
+#         soup = BeautifulSoup(response.text, 'html.parser')
+#         articles = soup.find_all(class_='card__article')
+#         data = []
+#         for article in articles:
+#             title_link = article.find('a', class_='card__article-link')
+#             title = title_link.find('span', class_='card__title').get_text().strip()
+#             link = title_link['href']
+#             data.append({'title': title, 'link': link})
+#         return data
+#     else:
+#         print('Error fetching webpage:', response.status_code)
+#         return []
+
+# 24sata    
+def extract_sata24(url):
+    response = requests.get(url)
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.content, 'html.parser')
+        data = []
+        for card in soup.find_all('div', class_='card'):
+            a_tag = card.find('a')
+            title = a_tag.find('h2', class_='title').text.strip()
+            link = a_tag['href']
+            data.append({'title': title, 'link': link})
+        return data
+    else:
+        print("Failed to fetch webpage:", response.status_code)
+        return []
+    
+def sata24(request):
+    url = 'https://www.24sata.hr/news'
+    titles = extract_sata24(url)
+    return render(request, "news/24sata.html", {'user': request.user, 'titles': titles })
+
+def users(request):
+    users = User.objects.all()
+    return render(request, "news/users.html", {'users': users})

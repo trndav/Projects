@@ -2,7 +2,7 @@
 
 {% block body %}
     
-    <h3 class="margin_left20">Večernji</h3>
+    <h3 class="margin_left20">24sata</h3>
 
 <div class="container">
     <table class="table-success table-sm">
@@ -11,14 +11,12 @@
                 <thead>
                 <tr>
                     <th scope="col">Najčitanije</th>
-                    <th scope="col">Najnovije</th>
                 </tr>
                 </thead>
                 <tbody>
-                {% for title, title2 in zipped_titles %}      
+                {% for title in titles %}      
                 <tr>     
-                    <td><a href="https://www.vecernji.hr{{ title.link }}" target="_blank">{{ title.title }}</a></td>     
-                    <td><a href="https://www.vecernji.hr{{ title2.link }}" target="_blank">{{ title2.title }}</td>  
+                    <td><a href="https://www.24sata.hr{{ title.link }}" target="_blank">{{ title.title }}</a></td> 
                 </tr>     
                 {% endfor %}                 
                 </tbody>

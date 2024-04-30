@@ -1,0 +1,31 @@
+{% extends "twitterapp/layout.html" %}
+
+{% block body %}
+    <div class="border mx-auto">
+    <h3 class="margin_left20">Edit Post</h3>
+
+    <form method="POST" class="margin_left20">
+        <div class="col-sm-8 rounded-border">
+            <h4>New Post</h4>
+            {% csrf_token %}
+            <div class="form-group">
+                <textarea class="form-control" id="id_text" name="text" rows="3" placeholder="Enter text">{{ post.text }}</textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+    </form>
+
+    <h4 class="margin_left20">Latest Posts</h4>
+
+    <ul>
+        {% for post in posts %}
+        <div class="col-sm-8">
+            {{ post.text }}<br>
+            <p id="font_small">Posted by <b>{{ post.user }}</b> <i>on {{ post.created_at }}</i></p>
+            <hr>
+        </div>
+        {% endfor %}
+    </ul>
+    </div>
+
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "news/layout.html" %}
+
+{% block body %}
+    
+    <h3 class="margin_left20">Jutarnji</h3>
+
+<div class="container">
+    <table class="table-success table-sm">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <thead>
+                <tr>
+                    <th scope="col">Najčitanije</th>
+                    <th scope="col">Najnovije</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for title, title2 in zipped_titles %}      
+                <tr>     
+                    <td><a href="https://www.jutarnji.hr{{ title.link }}" target="_blank">{{ title.title }}</a></td> 
+                    <td><a href="https://www.jutarnji.hr{{ title2.link }}" target="_blank">{{ title2.title }}</a></td>  
+                </tr>     
+                {% endfor %}                 
+                </tbody>
+            </div>
+        </div>
+    </table>
+</div>
+
+
+{% endblock %}

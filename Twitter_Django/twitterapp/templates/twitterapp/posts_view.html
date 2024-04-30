@@ -1,0 +1,58 @@
+{% extends "twitterapp/layout.html" %}
+
+{% block body %}
+    <h3 class="margin_left20">Latest Posts</h3>
+
+    <ul id="posts-container">
+        <!-- Display posts -->
+        {% for post in page_obj %}
+        
+            <div class="col-sm-10">
+                {{ post.text }}<br>     
+                <i><span id="font_small">Posted by <b><a href="{% url 'user_page' username=post.user.username %}">{{ post.user }}</a></b> on {{ post.created_at }} 
+                    {% if user.is_authenticated and post.user == request.user %}
+                        <a href="{% url 'edit_post' post_id=post.id %}">Edit Post</a>
+                    {% endif %}                
+                </i></span><br>  
+                <span class="font_small" id="likes_count_{{ post.id }}">{{ post.total_likes }}</span> <span class="font_small"> likes</span>
+                {% if user.is_authenticated %}
+                    <button class="like-btn" data-post-id="{{ post.id }}">Like</button> <button type="button" class="unlike-btn" data-post-id="{{ post.id }}">Unlike</button>
+
+                {% endif %}            
+                <hr>
+            </div>
+        
+        {% endfor %}
+    
+        <!-- Pagination -->
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+                {% for num in page_obj.paginator.page_range %}
+                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+                {% endfor %}
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </ul>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    
+{% endblock %}

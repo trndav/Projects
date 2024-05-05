@@ -19,4 +19,4 @@
 * python3 --version
 * pip3 install -r requirements.txt
 
-#### More instructions how to integrate on FB page available in PDF: Deploying IBM Chatbot to Facebook Messenger.rar
+#### More instructions how to integrate on FB page available in PDF: Deploying IBM Chatbot to Facebook Messenger.rar Deploy to Slack Slack_Chatbot_Deploy.rar

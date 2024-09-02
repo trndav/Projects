@@ -1,3 +1,4 @@
+
 import pygame
 import sys
 import math
@@ -35,21 +36,20 @@ class Bubble:
         self.attack_button = pygame.Rect(self.x + 5, self.y + 50, 60, 30)
 
     def draw(self, screen):
-        if self.population > 0:  # Only draw if population is greater than 0
+        if self.population > 0:
             pygame.draw.circle(screen, self.color, (self.x, self.y), self.radius)
             population_text = font.render(str(int(self.population)), True, BLACK)
             screen.blit(population_text, (self.x - population_text.get_width() // 2, self.y - population_text.get_height() // 2))
             
-            # Draw buttons
             pygame.draw.rect(screen, WHITE, self.grow_button)
             pygame.draw.rect(screen, WHITE, self.attack_button)
-            pygame.draw.rect(screen, BLACK, self.grow_button, 2)  # Add border to buttons
-            pygame.draw.rect(screen, BLACK, self.attack_button, 2)  # Add border to buttons
+            pygame.draw.rect(screen, BLACK, self.grow_button, 2)
+            pygame.draw.rect(screen, BLACK, self.attack_button, 2)
             screen.blit(grow_text, (self.grow_button.x + 5, self.grow_button.y + 5))
             screen.blit(attack_text, (self.attack_button.x + 5, self.attack_button.y + 5))
 
     def update(self):
-        if self.population > 0:  # Only update if population is greater than 0
+        if self.population > 0:
             self.population += self.growth_rate / FPS
 
     def grow(self):
@@ -64,16 +64,21 @@ grow_text = font.render('Grow', True, BLACK)
 attack_text = font.render('Attack', True, BLACK)
 
 # Initialize bubbles with different colors
-player_bubble = Bubble(200, 300, (0, 128, 255))  # Blue bubble
-enemy_bubble = Bubble(600, 300, (255, 0, 0))     # Red bubble
+def reset_game():
+    global player_bubble, enemy_bubble, selected_bubble, connections, game_over, winner_text, play_again_button
+    player_bubble = Bubble(200, 300, (0, 128, 255))  # Blue bubble
+    enemy_bubble = Bubble(600, 300, (255, 0, 0))     # Red bubble
+    selected_bubble = None
+    connections = []
+    game_over = False
+    winner_text = None
+    play_again_button = None
+
+reset_game()
 
 # Game Loop
 running = True
 clock = pygame.time.Clock()
-selected_bubble = None
-attack_line = None
-game_over = False
-winner_text = None
 
 while running:
     screen.fill(WHITE)
@@ -81,18 +86,37 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        elif event.type == pygame.MOUSEBUTTONDOWN and not game_over:
+        elif event.type == pygame.MOUSEBUTTONDOWN:
             mouse_x, mouse_y = pygame.mouse.get_pos()
             
-            # Select or connect bubbles
-            if player_bubble.radius > math.hypot(mouse_x - player_bubble.x, mouse_y - player_bubble.y):
-                selected_bubble = player_bubble
-            elif selected_bubble and enemy_bubble.radius > math.hypot(mouse_x - enemy_bubble.x, mouse_y - enemy_bubble.y):
-                attack_line = (selected_bubble, enemy_bubble)
-            elif player_bubble.grow_button.collidepoint(mouse_x, mouse_y):
-                player_bubble.grow()
-            elif player_bubble.attack_button.collidepoint(mouse_x, mouse_y):
-                player_bubble.attack_boost()
+            if game_over and play_again_button and play_again_button.collidepoint(mouse_x, mouse_y):
+                reset_game()
+            elif not game_over:
+                # Check if a bubble is clicked
+                if player_bubble.radius > math.hypot(mouse_x - player_bubble.x, mouse_y - player_bubble.y):
+                    if not selected_bubble:
+                        selected_bubble = player_bubble
+                    elif selected_bubble and selected_bubble != player_bubble:
+                        connections.append((selected_bubble, player_bubble))
+                        selected_bubble = None
+                elif enemy_bubble.radius > math.hypot(mouse_x - enemy_bubble.x, mouse_y - enemy_bubble.y):
+                    if not selected_bubble:
+                        selected_bubble = enemy_bubble
+                    elif selected_bubble and selected_bubble != enemy_bubble:
+                        connections.append((selected_bubble, enemy_bubble))
+                        selected_bubble = None
+                else:
+                    selected_bubble = None
+
+                # Handle button clicks
+                if player_bubble.grow_button.collidepoint(mouse_x, mouse_y):
+                    player_bubble.grow()
+                elif player_bubble.attack_button.collidepoint(mouse_x, mouse_y):
+                    player_bubble.attack_boost()
+                elif enemy_bubble.grow_button.collidepoint(mouse_x, mouse_y):
+                    enemy_bubble.grow()
+                elif enemy_bubble.attack_button.collidepoint(mouse_x, mouse_y):
+                    enemy_bubble.attack_boost()
                 
     # Draw and update bubbles
     if not game_over:
@@ -102,32 +126,41 @@ while running:
     player_bubble.draw(screen)
     enemy_bubble.draw(screen)
     
-    # Handle attack
-    if attack_line and not game_over:
-        attacker, defender = attack_line
-        defender.population -= attacker.attack_rate / FPS
-        attacker.population -= BASE_ATTACK / FPS
+    # Draw the permanent connecting lines and manage the fight
+    for conn in connections:
+        pygame.draw.line(screen, BLACK, (conn[0].x, conn[0].y), (conn[1].x, conn[1].y), 2)
+        conn[1].population -= conn[0].attack_rate / FPS
+        conn[0].population -= BASE_ATTACK / FPS
         
-        if defender.population <= 0:
-            defender.population = 0
+        if conn[1].population <= 0:
+            conn[1].population = 0
             game_over = True
             winner_text = font.render("Winner!", True, BLACK)
-        elif attacker.population <= 0:
-            attacker.population = 0
+            play_again_button = pygame.Rect(WIDTH//2 - 50, 20, 100, 40)
+        elif conn[0].population <= 0:
+            conn[0].population = 0
             game_over = True
             winner_text = font.render("Winner!", True, BLACK)
+            play_again_button = pygame.Rect(WIDTH//2 - 50, 20, 100, 40)
     
-    # Display winner text if game over
+    # Display winner text and "Play Again" button if game over
     if game_over:
-        if defender.population == 0 and attacker.population > 0:
-            screen.blit(winner_text, (attacker.x - winner_text.get_width() // 2, attacker.y - 60))
-            enemy_bubble.population = 0  # Remove losing bubble
-        elif attacker.population == 0 and defender.population > 0:
-            screen.blit(winner_text, (defender.x - winner_text.get_width() // 2, defender.y - 60))
-            player_bubble.population = 0  # Remove losing bubble
+        if conn[1].population == 0 and conn[0].population > 0:
+            screen.blit(winner_text, (conn[0].x - winner_text.get_width() // 2, conn[0].y - 60))
+        elif conn[0].population == 0 and conn[1].population > 0:
+            screen.blit(winner_text, (conn[1].x - winner_text.get_width() // 2, conn[1].y - 60))
+        
+        # Draw "Play Again" button
+        if play_again_button:
+            pygame.draw.rect(screen, BLACK, play_again_button)
+            play_again_text = font.render("Play Again", True, WHITE)
+            screen.blit(play_again_text, (play_again_button.x + (play_again_button.width - play_again_text.get_width()) // 2, play_again_button.y + (play_again_button.height - play_again_text.get_height()) // 2))
 
     pygame.display.flip()
     clock.tick(FPS)
 
 pygame.quit()
 sys.exit()
+
+
+

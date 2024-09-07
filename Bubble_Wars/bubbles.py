@@ -15,7 +15,7 @@ GREY = (128, 128, 128)
 FPS = 60
 
 # Bubble Properties
-POPULATION_INCREMENT = 1
+POPULATION_INCREMENT = 0.9
 GROWTH_RATE = 1.5
 ATTACK_RATE = 1.2
 BASE_ATTACK = 3
@@ -287,5 +287,4 @@ while running:
 # Quit the game
 pygame.quit()
 sys.exit()
-
 

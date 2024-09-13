@@ -68,7 +68,8 @@
 
 #     def update(self):
 #         if self.population > 0 and not self.is_neutral and not self.growth_paused:
-#             self.population += self.growth_rate / FPS
+#             # Growth rate depends on growth level
+#             self.population += (self.growth_rate * (1 + self.growth_level)) / FPS
 #             self.adjust_size()
 
 #     def adjust_size(self):
@@ -78,11 +79,13 @@
 
 #     def grow(self):
 #         if not self.is_neutral and self.population > 10:
-#             cost = 10 + (self.population - 10) * 0.5  # Calculate the cost: 10 + 50% of remaining population
-#             self.population -= cost  # Deduct the cost from population
-#             if self.population < 0:
-#                 self.population = 0  # Ensure population doesn't drop below 0
-#             self.growth_rate = GROWTH_RATE  # Apply the growth rate
+#             cost = 10 + (self.population - 10) * 0.5  # Calculate the cost: 10 + 50% of remaining population            
+#             if self.population >= cost:  # Ensure the player has enough population to pay the cost
+#                 self.population -= cost  # Deduct the cost from population
+#                 self.growth_level += 1  # Increase growth level
+#                 self.growth_rate = 1 + (self.growth_level * 0.2)  # Growth rate increases with each level
+#             else:
+#                 print("Not enough population to grow!")
 
 #     def attack_boost(self):
 #         if not self.is_neutral:
@@ -338,7 +341,6 @@
 # pygame.display.set_caption("Bubbles")
 
 # # Bubble Class
-# # Bubble Class
 # class Bubble:
 #     def __init__(self, x, y, color, population=10, growth_rate=POPULATION_INCREMENT, is_neutral=False, is_player=False):
 #         self.x = x
@@ -418,10 +420,15 @@
 #         self.is_neutral = False
 #         self.color = owner_bubble.color
 #         self.population = 10
+
+#         # Inherit the growth rate and growth level of the owner bubble
+#         self.growth_rate = owner_bubble.growth_rate
+#         self.growth_level = owner_bubble.growth_level
+#         self.growth_paused = owner_bubble.growth_paused  # Inherit whether growth is paused
+
 #         # Only assign buttons if the owner is the player
 #         if owner_bubble.is_player:
-#             self.grow_button = pygame.Rect(self.x - 60, self.y + 50, 60, 30)
-#             self.attack_button = pygame.Rect(self.x + 5, self.y + 50, 60, 30)
+#             self.is_player = False  # Conquered bubble is player-controlled but doesn't get buttons
 
 #         connections_to_remove = []
 #         for conn in connections:
@@ -616,6 +623,7 @@
 # sys.exit()
 
 
+
 import pygame
 import sys
 import math
@@ -647,6 +655,14 @@ NUM_NEUTRAL_BUBBLES = 2
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Bubbles")
 
+# Screen split percentages
+GAME_AREA_HEIGHT_PERCENT = 0.9  # 90% of the screen for gameplay
+UI_AREA_HEIGHT_PERCENT = 0.1    # 10% of the screen for UI (buttons)
+
+# New dimensions for the game area and the UI area
+GAME_AREA_HEIGHT = int(HEIGHT * GAME_AREA_HEIGHT_PERCENT)
+UI_AREA_HEIGHT = int(HEIGHT * UI_AREA_HEIGHT_PERCENT)
+
 # Bubble Class
 class Bubble:
     def __init__(self, x, y, color, population=10, growth_rate=POPULATION_INCREMENT, is_neutral=False, is_player=False):
@@ -662,10 +678,10 @@ class Bubble:
         self.growth_paused = False
         self.growth_level = 0  # Track the number of times 'Grow' has been clicked
 
-        # Only player bubble has buttons
+        # Only player bubble has buttons, placed in the UI area (bottom 10%)
         if self.is_player:
-            self.grow_button = pygame.Rect(self.x - 60, self.y + 50, 60, 30)
-            self.attack_button = pygame.Rect(self.x + 5, self.y + 50, 60, 30)
+            self.grow_button = pygame.Rect(WIDTH // 2 - 70, GAME_AREA_HEIGHT + 10, 60, 30)
+            self.attack_button = pygame.Rect(WIDTH // 2 + 10, GAME_AREA_HEIGHT + 10, 60, 30)
 
     def draw(self, screen):
         if self.population > 0:
@@ -755,7 +771,9 @@ attack_text = font.render('Attack', True, BLACK)
 def generate_random_position(existing_bubbles, radius):
     while True:
         x = random.randint(radius, WIDTH - radius)
-        y = random.randint(radius, HEIGHT - radius)
+        # Restrict Y-coordinate to be within the top 90% of the screen
+        max_y = int(HEIGHT * 0.9) - radius  # Top 90% of the screen minus the bubble radius
+        y = random.randint(radius, max_y)
         new_bubble = Bubble(x, y, GREY, NEUTRAL_POPULATION, 0, True)
 
         # Check for overlap with existing bubbles
@@ -809,7 +827,12 @@ running = True
 clock = pygame.time.Clock()
 
 while running:
-    screen.fill(WHITE)
+    # Fill the game area (top 90%)
+    screen.fill(WHITE, pygame.Rect(0, 0, WIDTH, GAME_AREA_HEIGHT))
+
+    # Fill the UI area (bottom 10%) for buttons
+    pygame.draw.rect(screen, GREY, pygame.Rect(0, GAME_AREA_HEIGHT, WIDTH, UI_AREA_HEIGHT))
+
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -837,11 +860,11 @@ while running:
                             line_start = None
                         break  # Stop checking other bubbles after the first hit
 
-                # Handle button clicks for player and enemy bubbles
+                # Handle button clicks for player bubbles (buttons are now in the UI area)
                 if player_bubble.is_player:
-                    if player_bubble.grow_button.collidepoint(mouse_x, mouse_y):
+                    if player_bubble.grow_button.collidepoint(mouse_x, mouse_y) and mouse_y > GAME_AREA_HEIGHT:
                         player_bubble.grow()
-                    elif player_bubble.attack_button.collidepoint(mouse_x, mouse_y):
+                    elif player_bubble.attack_button.collidepoint(mouse_x, mouse_y) and mouse_y > GAME_AREA_HEIGHT:
                         player_bubble.attack_boost()
 
         elif event.type == pygame.MOUSEBUTTONUP:

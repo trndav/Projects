@@ -1,3 +1,4 @@
+# Fix: After blue conquers red main bubble, blue line stays on
 
 import pygame
 import sys
@@ -121,7 +122,6 @@ class Bubble:
                 #else:
                     #print("Not enough population to grow!")
                 
-
     def attack_boost(self):
         if not self.is_neutral:
             self.attack_rate = BASE_ATTACK * ATTACK_RATE
@@ -201,11 +201,24 @@ class Bubble:
 
 blue_bubble = Bubble(100, 100, 20, (0, 0, 255))  # Blue color
 red_bubble = Bubble(200, 200, 20, (255, 0, 0))   # Red color
-new_game_button = pygame.Rect(WIDTH // 2 - 100, GAME_AREA_HEIGHT + 60, 200, 50)  # Position below the other buttons
 
+def promote_new_red_bubble():
+    global enemy_bubble
+    red_neutral_bubbles = [bubble for bubble in neutral_bubbles if bubble.color == (255, 0, 0)]
 
+    if red_neutral_bubbles:
+        # Choose the first available red neutral bubble to promote
+        new_red_bubble = red_neutral_bubbles[0]
+
+        # Update the bubble's attributes to become the main red bubble
+        new_red_bubble.is_neutral = False
+        new_red_bubble.growth_rate = POPULATION_INCREMENT  # Give it a normal growth rate
+        new_red_bubble.attack_rate = BASE_ATTACK  # Set the attack rate for the new red bubble
+        enemy_bubble = new_red_bubble  # Make this bubble the new main enemy bubble
 
 def draw_game_over(screen, winner):
+    global play_again_button
+
     # Display "Winner!" message near the winning bubble
     winner_text = font.render("Winner!", True, BLACK)
     screen.blit(winner_text, (winner.x - winner_text.get_width() // 2, winner.y - winner.radius - 20))
@@ -217,15 +230,8 @@ def draw_game_over(screen, winner):
     
     play_again_text = font.render("Play Again", True, BLACK)
     screen.blit(play_again_text, (play_again_button.x + (play_again_button.width - play_again_text.get_width()) // 2,
-                                   play_again_button.y + (play_again_button.height - play_again_text.get_height()) // 2))
+                                play_again_button.y + (play_again_button.height - play_again_text.get_height()) // 2))
 
-    # Draw New Game button below the Play Again button
-    pygame.draw.rect(screen, WHITE, new_game_button)
-    pygame.draw.rect(screen, BLACK, new_game_button, 2)
-    
-    new_game_text = font.render("New Game", True, BLACK)
-    screen.blit(new_game_text, (new_game_button.x + (new_game_button.width - new_game_text.get_width()) // 2,
-                                 new_game_button.y + (new_game_button.height - new_game_text.get_height()) // 2))
 
 # Initialize Font
 font = pygame.font.SysFont(None, 24)
@@ -305,39 +311,13 @@ while running:
     # Fill the UI area (bottom 10%) for buttons
     pygame.draw.rect(screen, GREY, pygame.Rect(0, GAME_AREA_HEIGHT, WIDTH, UI_AREA_HEIGHT))
 
-    # Draw buttons
-    if game_over:
-        draw_game_over(screen, winner)  # Draws the "Winner!" message and buttons
-    else:
-        pygame.draw.rect(screen, WHITE, new_game_button)
-        pygame.draw.rect(screen, BLACK, new_game_button, 2)
-        new_game_text = font.render("New Game", True, BLACK)
-        screen.blit(new_game_text, (new_game_button.x + (new_game_button.width - new_game_text.get_width()) // 2,
-                                     new_game_button.y + (new_game_button.height - new_game_text.get_height()) // 2))
-        
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.MOUSEBUTTONDOWN:
             mouse_x, mouse_y = pygame.mouse.get_pos()
-
-            if game_over:
-                if play_again_button and play_again_button.collidepoint(mouse_x, mouse_y):
-                    reset_game()  # Reset for Play Again
-                elif new_game_button.collidepoint(mouse_x, mouse_y):
-                    reset_game()  # Start a new gam
-
             dragging = True
             drag_start = (mouse_x, mouse_y)
-
-            # In your event loop
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                mouse_x, mouse_y = pygame.mouse.get_pos()
-                
-                if play_again_button and play_again_button.collidepoint(mouse_x, mouse_y):
-                    reset_game()  # Reset for Play Again
-                elif new_game_button.collidepoint(mouse_x, mouse_y):
-                    reset_game()  # Start a new game
             
             if game_over and play_again_button and play_again_button.collidepoint(mouse_x, mouse_y):
                 reset_game()
@@ -413,13 +393,20 @@ while running:
 
     # Check if the game is over
     if player_bubble.population <= 0 or enemy_bubble.population <= 0:
-        game_over = True
-        winner = player_bubble if player_bubble.population > 0 else enemy_bubble
-        winner.growth_paused = True  # Stop the growth of the winning bubble
         if player_bubble.population <= 0:
+            game_over = True
+            winner = enemy_bubble
             player_bubble.population = 0  # Hide the defeated bubble
-        if enemy_bubble.population <= 0:
-            enemy_bubble.population = 0  # Hide the defeated bubble
+            player_bubble.growth_paused = True
+        elif enemy_bubble.population <= 0:
+            # Try to promote a new red bubble if possible
+            promote_new_red_bubble()
+            if enemy_bubble.population <= 0:  # If no red neutral bubbles are left
+                game_over = True
+                winner = player_bubble
+                enemy_bubble.population = 0  # Hide the defeated bubble
+                enemy_bubble.growth_paused = True
+
 
     # Draw bubbles and connections
     if not game_over:
@@ -455,13 +442,6 @@ while running:
         # Draw "Winner!" text and "Play Again" button
         winner = player_bubble if player_bubble.population > 0 else enemy_bubble
         draw_game_over(screen, winner)
-
-        # Draw New Game button as well
-        pygame.draw.rect(screen, WHITE, new_game_button)
-        pygame.draw.rect(screen, BLACK, new_game_button, 2)
-        new_game_text = font.render("New Game", True, BLACK)
-        screen.blit(new_game_text, (new_game_button.x + (new_game_button.width - new_game_text.get_width()) // 2,
-                                    new_game_button.y + (new_game_button.height - new_game_text.get_height()) // 2))
     
     # Update the display
     pygame.display.flip()
@@ -470,6 +450,3 @@ while running:
 # Quit the game
 pygame.quit()
 sys.exit()
-
-
-

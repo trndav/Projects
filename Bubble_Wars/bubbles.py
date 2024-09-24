@@ -1,4 +1,7 @@
 # Fix: After blue conquers red main bubble, blue line stays on
+# Remove unnecessary code
+# implement attack functionality
+# fix red attacking red bubble
 
 import pygame
 import sys

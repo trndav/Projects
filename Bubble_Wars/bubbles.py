@@ -1,3 +1,4 @@
+
 # Fix: After blue conquers red main bubble, blue line stays on
 # Remove unnecessary code
 # implement attack functionality
@@ -139,6 +140,7 @@ class Bubble:
                 transfer_amount = (self.population - other_bubble.population) * transfer_rate / FPS
                 self.population -= transfer_amount
                 other_bubble.population += transfer_amount
+                
             elif other_bubble.population > self.population:
                 transfer_amount = (other_bubble.population - self.population) * transfer_rate / FPS
                 other_bubble.population -= transfer_amount
@@ -162,6 +164,12 @@ class Bubble:
             if other_bubble.population < 0:
                 other_bubble.population = 0
 
+            # If a bubble's population drops to zero, it becomes owned by the other bubble
+            if self.population <= 0:
+                self.become_owned(other_bubble)
+            elif other_bubble.population <= 0:
+                other_bubble.become_owned(self)
+
         if self.is_neutral and self.population <= 0:
             self.become_owned(other_bubble)
 
@@ -172,11 +180,11 @@ class Bubble:
         if self.color == other_bubble.color:
             return
 
-
-    def become_owned(self, owner_bubble):
-        self.is_neutral = False
+    def become_owned(self, owner_bubble):        
         self.color = owner_bubble.color
-        self.population = 10
+        self.is_neutral = False
+        self.population = owner_bubble.population // 2
+        owner_bubble.population //= 2
 
         # Inherit the growth rate and growth level of the owner bubble
         self.growth_rate = owner_bubble.growth_rate
@@ -459,4 +467,11 @@ while running:
 # Quit the game
 pygame.quit()
 sys.exit()
+
+
+
+
+
+
+
 
